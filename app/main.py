@@ -2,12 +2,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .config import settings
 from .database import create_tables
-from .api.routes import router
+from app.routers import assets, cves
+from app.database import engine, Base
+from app.utils.logger import logger
 
 # Create FastAPI app
 app = FastAPI(
-    title="FastAPI Backend",
-    description="Complete backend architecture with PostgreSQL and external API integration",
+    title="Security Backend API",
+    description="API for managing devices and their security information (CVEs, CWEs, CAPECs, ATT&CK)",
     version="1.0.0",
     debug=settings.debug
 )
@@ -22,28 +24,21 @@ app.add_middleware(
 )
 
 # Include routers
-app.include_router(router, prefix="/api/v1", tags=["api"])
-
-@app.on_event("startup")
-async def startup_event():
-    """Create database tables on startup"""
-    create_tables()
-    print("Database tables created successfully")
+app.include_router(assets.router, prefix="/api/v1")
+app.include_router(cves.router, prefix="/api/v1")
 
 @app.get("/")
 async def root():
-    """Root endpoint"""
-    return {
-        "message": "FastAPI Backend is running",
-        "version": "1.0.0",
-        "docs": "/docs",
-        "redoc": "/redoc"
-    }
+    return {"message": "Security Backend API is running"}
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy"}
 
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
-        "app.main:app",
+        app,
         host=settings.api_host,
         port=settings.api_port,
         reload=settings.debug
