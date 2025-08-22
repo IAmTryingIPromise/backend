@@ -6,7 +6,7 @@ from sqlalchemy import pool
 from alembic import context
 
 from app.database import Base
-import app.models
+from app.models import asset, cve, cwe, capec, attack, relations
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

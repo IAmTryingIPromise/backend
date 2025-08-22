@@ -11,6 +11,7 @@ from pydantic import BaseModel
 import time
 import os
 
+from app.config import settings
 from app.database import get_db
 from app.services.security_vulnerability_scanner_service import VulnerabilityScanner
 from app.crud import asset as asset_crud
@@ -27,7 +28,7 @@ from .schemas import (
 
 # Configure scanner
 SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__))
-NVD_API_KEY = os.getenv("NVD_API_KEY", "4a116d75-367e-4c9b-90de-904679b57060")
+NVD_API_KEY = settings.nvd_api_key
 scanner = VulnerabilityScanner(NVD_API_KEY, SCRIPT_PATH)
 
 router = APIRouter(prefix="/security", tags=["security-scanner"])
