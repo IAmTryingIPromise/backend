@@ -9,7 +9,9 @@ class CVEBase(BaseModel):
     exploitability: Optional[float] = None
     impact: Optional[float] = None
     epss: Optional[float] = None
-    risk_level: float = .0
+    risk_level: float = 0.0
+    impact_score: Optional[float] = None
+    exploitability_score: Optional[float] = None
 
 class CVECreate(CVEBase):
     pass
@@ -19,5 +21,6 @@ class CVE(CVEBase):
     created_at: datetime
     updated_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
+    model_config = {
+        "from_attributes": True
+    }

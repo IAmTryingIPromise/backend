@@ -20,10 +20,13 @@ class Asset(Base):
     __tablename__ = "assets"
 
     id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False, index=True)
     type = Column(String, nullable=False)
     model = Column(String, nullable=False)
     vendor = Column(String, nullable=False)
+    version = Column(String, nullable=True)
     department = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
     risk_level = Column(Float, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
