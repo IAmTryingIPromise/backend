@@ -18,9 +18,3 @@ def get_db():
         db.rollback()
     finally:
         db.close()
-
-'''
-def create_tables():
-    """Create all tables"""
-    Base.metadata.create_all(bind=engine)
-'''

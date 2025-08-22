@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Settings(BaseSettings):
-    database_url: str = os.getenv("DATABASE_URL", "postgresql://username:password@localhost:5432/your_database")
+    database_url: str = os.getenv("DATABASE_URL", "postgresql+psycopg2://savvas:Savvas123!@localhost:5432/security_db")
     secret_key: str = os.getenv("SECRET_KEY", "your-secret-key-here")
     api_host: str = os.getenv("API_HOST", "0.0.0.0")
     api_port: int = int(os.getenv("API_PORT", "8000"))
