@@ -1,6 +1,6 @@
-from .asset import *
-from .cve import *
-from .cwe import *
-from .capec import *
-from .attack import *
-from .relations import *
+from .asset import Asset
+from .cve import CVE
+from .cwe import CWE
+from .capec import CAPEC
+from .attack import Attack
+from .relations import AssetCVERelation, CVECWERelation, CWECAPECRelation, CAPECAttackRelation

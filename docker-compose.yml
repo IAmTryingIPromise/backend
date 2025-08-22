@@ -1,27 +1,27 @@
-version: '3.8'
-
 services:
   db:
-    image: postgres:15
+    image: postgres:17.6
+    container_name: security_postgres_db
+    restart: always
     environment:
-      POSTGRES_DB: your_database
-      POSTGRES_USER: username
-      POSTGRES_PASSWORD: password
+      POSTGRES_DB: security_db
+      POSTGRES_USER: savvas
+      POSTGRES_PASSWORD: Savvas123!
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  backend:
-    build: .
-    ports:
-      - "8000:8000"
-    environment:
-      - DATABASE_URL=postgresql://username:password@db:5432/your_database
-    depends_on:
-      - db
-    volumes:
-      - .:/app
+#  backend:
+#    build: .
+#    ports:
+#      - "8000:8000"
+#    environment:
+#      - DATABASE_URL=postgresql://username:password@db:5432/your_database
+#    depends_on:
+#      - db
+#    volumes:
+#      - .:/app
 
 volumes:
   postgres_data:

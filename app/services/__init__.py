@@ -1,2 +1,1 @@
-from .external_api import *
-from .data_processor import *
+from .security_vulnerability_scanner_service import *
