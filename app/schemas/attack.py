@@ -3,7 +3,8 @@ from typing import Optional
 from datetime import datetime
 
 class AttackBase(BaseModel):
-    attack_id: str
+    technique_id: str
+    external_id: Optional[str] = None
     name: str
     description: Optional[str] = None
     platforms: Optional[str] = None
@@ -21,5 +22,6 @@ class Attack(AttackBase):
     created_at: datetime
     updated_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
+    model_config = {
+        "from_attributes": True
+    }

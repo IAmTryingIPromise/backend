@@ -28,5 +28,7 @@ class CVE(Base):
     impact = Column(Float, nullable=True)
     epss = Column(Float, nullable=True)
     risk_level = Column(Float, default=.0)
+    impact_score = Column(Float, nullable=True)
+    exploitability_score = Column(Float, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

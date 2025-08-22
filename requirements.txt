@@ -7,7 +7,7 @@ pydantic==2.11.7
 httpx==0.28.1
 alembic==1.16.4
 python-multipart==0.0.20
-aiohttp=3.12.15
-fuzzywuzzy=0.18.0
-python-Levenshtein=0.27.1
-mitreattack-python=4.0.2
+aiohttp==3.12.15
+fuzzywuzzy==0.18.0
+python-Levenshtein==0.27.1
+mitreattack-python==4.0.2

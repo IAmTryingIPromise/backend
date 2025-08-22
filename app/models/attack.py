@@ -21,7 +21,8 @@ class Attack(Base):
     __tablename__ = "attacks"
 
     id = Column(Integer, primary_key=True, index=True)
-    attack_id = Column(String, unique=True, nullable=False, index=True)
+    technique_id = Column(String, unique=True, nullable=False, index=True)
+    external_id = Column(String, nullable=True)
     name = Column(String, nullable=False)
     description = Column(Text, nullable=True)
     platforms = Column(String, nullable=True)
