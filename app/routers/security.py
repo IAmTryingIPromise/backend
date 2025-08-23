@@ -11,6 +11,7 @@ from typing import List, Dict, Any, Optional
 from pydantic import BaseModel
 import time
 import os
+from pathlib import Path
 
 from app.config import settings
 from app.database import get_db
@@ -33,9 +34,10 @@ from .schemas import (
 )
 
 # Configure scanner
-SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = Path(__file__).parent
+#SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__))
 NVD_API_KEY = settings.nvd_api_key
-scanner = VulnerabilityScanner(NVD_API_KEY, SCRIPT_PATH)
+scanner = VulnerabilityScanner(NVD_API_KEY, str(PROJECT_ROOT))
 
 router = APIRouter(prefix="/security", tags=["security-scanner"])
 

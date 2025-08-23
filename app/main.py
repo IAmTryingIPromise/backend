@@ -6,10 +6,12 @@ from contextlib import asynccontextmanager
 import uvicorn
 import os
 import sys
+import time
 from pathlib import Path
 
 # Add the project root to Python path
 PROJECT_ROOT = Path(__file__).parent
+DATA_PATH_PREFIX = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 # Import application components
@@ -61,7 +63,7 @@ async def lifespan(app: FastAPI):
         logger.info("Vulnerability scanner initialized successfully")
         
         # Verify data files exist
-        data_dir = PROJECT_ROOT / "data"
+        data_dir = DATA_PATH_PREFIX / "data"
         if not data_dir.exists():
             logger.warning(f"Data directory not found: {data_dir}")
         else:
@@ -201,7 +203,7 @@ app.include_router(
 # app.include_router(auth.router, prefix=API_PREFIX + "/auth", tags=["Authentication"])
 # app.include_router(admin.router, prefix=API_PREFIX + "/admin", tags=["Administration"])
 
-
+'''
 if __name__ == "__main__":
     import time
     
@@ -217,4 +219,4 @@ if __name__ == "__main__":
         reload=DEBUG_MODE,
         log_level="info" if DEBUG_MODE else "warning",
         access_log=DEBUG_MODE,
-    )
+    )'''
