@@ -6,7 +6,7 @@ load_dotenv()
 
 class Settings(BaseSettings):
     database_url: str = "postgresql+psycopg2://savvas:Savvas123!@localhost:5432/security_db"
-    secret_key: str = "your-secret-key-here"
+    secret_key: str = "8b9ca364-443f-9920-b8a94c54"
     api_prefix: str = "/api/v1"
     api_host: str = "0.0.0.0"
     api_port: int = 8000

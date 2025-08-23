@@ -6,6 +6,7 @@ Core functionality for device vulnerability scanning
 
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
+from sqlalchemy import func, desc
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel
 import time
@@ -19,6 +20,11 @@ from app.crud import cve as cve_crud
 from app.crud import cwe as cwe_crud
 from app.crud import capec as capec_crud
 from app.crud import attack as attack_crud
+from app.models.asset import Asset
+from app.models.cve import CVE
+from app.models.cwe import CWE
+from app.models.capec import CAPEC
+from app.models.attack import Attack
 from app.utils.logger import logger
 from .schemas import (
     CPESearchRequest, CPESearchResponse, ScanByCPERequest, FullScanResponse,
@@ -155,7 +161,7 @@ async def get_scanned_devices(
     """
     try:
         skip = (page - 1) * per_page
-        query = db.query(asset_crud.Asset)
+        query = db.query(Asset)
         
         # Apply filters
         if department:
@@ -288,13 +294,6 @@ async def get_security_statistics(db: Session = Depends(get_db)):
     Get security statistics for dashboard
     """
     try:
-        from sqlalchemy import func, desc
-        from app.models.asset import Asset
-        from app.models.cve import CVE
-        from app.models.cwe import CWE
-        from app.models.capec import CAPEC
-        from app.models.attack import Attack
-        
         total_assets = db.query(Asset).count()
         vulnerable_assets = db.query(Asset).filter(Asset.risk_level > 0).count()
         total_cves = db.query(CVE).count()
