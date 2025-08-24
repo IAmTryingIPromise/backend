@@ -8,14 +8,15 @@ import os
 import sys
 import time
 from pathlib import Path
+from sqlalchemy import text
 
 # Add the project root to Python path
 PROJECT_ROOT = Path(__file__).parent
-DATA_PATH_PREFIX = Path(__file__).parent.parent
+#DATA_PATH_PREFIX = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 # Import application components
-from app.database import engine, get_db, Base
+from app.database import engine, get_db, Base, SessionLocal
 from app.utils.logger import logger
 from app.routers import security
 from app.services.security_vulnerability_scanner_service import VulnerabilityScanner
@@ -63,7 +64,7 @@ async def lifespan(app: FastAPI):
         logger.info("Vulnerability scanner initialized successfully")
         
         # Verify data files exist
-        data_dir = DATA_PATH_PREFIX / "data"
+        data_dir = PROJECT_ROOT / "data"
         if not data_dir.exists():
             logger.warning(f"Data directory not found: {data_dir}")
         else:
@@ -159,8 +160,8 @@ async def health_check():
     """Application health check"""
     try:
         # Test database connection
-        db = next(get_db())
-        db.execute("SELECT 1")
+        db = SessionLocal()
+        db.execute(text("SELECT 1"))
         db.close()
         db_status = "connected"
     except Exception as e:
