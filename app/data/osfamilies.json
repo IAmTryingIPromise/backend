@@ -1,0 +1,113 @@
+{
+  "Cisco": {
+    "osFamilies": [
+      "IOS",
+      "IOS-XE",
+      "IOS-XR",
+      "NX-OS",
+      "ASA",
+      "FXOS"
+    ],
+    "default": "IOS-XE"
+  },
+  "Juniper": {
+    "osFamilies": [
+      "Junos",
+      "ScreenOS"
+    ],
+    "default": "Junos"
+  },
+  "Fortinet": {
+    "osFamilies": [
+      "FortiOS",
+      "FortiProxyOS"
+    ],
+    "default": "FortiOS"
+  },
+  "Palo Alto": {
+    "osFamilies": [
+      "PAN-OS"
+    ],
+    "default": "PAN-OS"
+  },
+  "SonicWall": {
+    "osFamilies": [
+      "SonicOS"
+    ],
+    "default": "SonicOS"
+  },
+  "Check Point": {
+    "osFamilies": [
+      "Gaia",
+      "Gaia Embedded"
+    ],
+    "default": "Gaia"
+  },
+  "MikroTik": {
+    "osFamilies": [
+      "RouterOS"
+    ],
+    "default": "RouterOS"
+  },
+  "Ubiquiti": {
+    "osFamilies": [
+      "EdgeOS",
+      "AirOS",
+      "UniFiOS"
+    ],
+    "default": "UniFiOS"
+  },
+  "Huawei": {
+    "osFamilies": [
+      "VRP"
+    ],
+    "default": "VRP"
+  },
+  "HPE": {
+    "osFamilies": [
+      "Comware",
+      "ArubaOS-Switch"
+    ],
+    "default": "Comware"
+  },
+  "Aruba": {
+    "osFamilies": [
+      "ArubaOS",
+      "InstantOS"
+    ],
+    "default": "ArubaOS"
+  },
+  "Netgear": {
+    "osFamilies": [
+      "Firmware"
+    ],
+    "default": "Firmware"
+  },
+  "Zyxel": {
+    "osFamilies": [
+      "ZyNOS",
+      "ZyxelOS"
+    ],
+    "default": "ZyNOS"
+  },
+  "Sophos": {
+    "osFamilies": [
+      "Sophos Firewall OS",
+      "Sophos UTM"
+    ],
+    "default": "Sophos Firewall OS"
+  },
+  "TP-Link": {
+    "osFamilies": [
+      "Firmware"
+    ],
+    "default": "Firmware"
+  },
+  "Dell": {
+    "osFamilies": [
+      "OS10",
+      "Networking OS6"
+    ],
+    "default": "OS10"
+  }
+}
