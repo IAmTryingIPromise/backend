@@ -3,6 +3,7 @@ from app.models.asset import Asset
 from app.schemas.asset import AssetCreate, AssetUpdate
 from typing import Optional, List
 from app.utils.logger import logger
+from typing import Union
 
 def get_asset(db: Session, asset_id: int) -> Optional[Asset]:
     try:
@@ -30,11 +31,16 @@ def create_asset(db: Session, asset: AssetCreate) -> Asset:
         db.rollback()
         raise
 
-def update_asset(db: Session, asset_id: int, asset: AssetUpdate) -> Optional[Asset]:
+def update_asset(db: Session, asset_id: int, asset: Union[AssetUpdate, dict]) -> Optional[Asset]:
     try:
         db_asset = db.query(Asset).filter(Asset.id == asset_id).first()
         if db_asset:
-            for key, value in asset.model_dump(exclude_unset=True).items():
+            if isinstance(asset, dict):
+                update_data = asset
+            else:
+                update_data = asset.model_dump(exclude_unset=True)
+
+            for key, value in update_data.items():
                 setattr(db_asset, key, value)
             db.commit()
             db.refresh(db_asset)

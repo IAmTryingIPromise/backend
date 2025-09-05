@@ -6,14 +6,17 @@ from contextlib import asynccontextmanager
 import uvicorn
 import os
 import sys
+import time
 from pathlib import Path
+from sqlalchemy import text
 
 # Add the project root to Python path
 PROJECT_ROOT = Path(__file__).parent
+#DATA_PATH_PREFIX = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 # Import application components
-from app.database import engine, get_db, Base
+from app.database import engine, get_db, Base, SessionLocal
 from app.utils.logger import logger
 from app.routers import security
 from app.services.security_vulnerability_scanner_service import VulnerabilityScanner
@@ -157,8 +160,8 @@ async def health_check():
     """Application health check"""
     try:
         # Test database connection
-        db = next(get_db())
-        db.execute("SELECT 1")
+        db = SessionLocal()
+        db.execute(text("SELECT 1"))
         db.close()
         db_status = "connected"
     except Exception as e:
@@ -201,7 +204,7 @@ app.include_router(
 # app.include_router(auth.router, prefix=API_PREFIX + "/auth", tags=["Authentication"])
 # app.include_router(admin.router, prefix=API_PREFIX + "/admin", tags=["Administration"])
 
-
+'''
 if __name__ == "__main__":
     import time
     
@@ -217,4 +220,4 @@ if __name__ == "__main__":
         reload=DEBUG_MODE,
         log_level="info" if DEBUG_MODE else "warning",
         access_log=DEBUG_MODE,
-    )
+    )'''

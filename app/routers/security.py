@@ -6,11 +6,12 @@ Core functionality for device vulnerability scanning
 
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
-from sqlalchemy import func, desc
+from sqlalchemy import func, desc, select
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel
 import time
 import os
+from pathlib import Path
 
 from app.config import settings
 from app.database import get_db
@@ -33,9 +34,10 @@ from .schemas import (
 )
 
 # Configure scanner
-SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = Path(__file__).parent
+#SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__))
 NVD_API_KEY = settings.nvd_api_key
-scanner = VulnerabilityScanner(NVD_API_KEY, SCRIPT_PATH)
+scanner = VulnerabilityScanner(NVD_API_KEY, str(PROJECT_ROOT))
 
 router = APIRouter(prefix="/security", tags=["security-scanner"])
 
@@ -48,7 +50,7 @@ async def search_cpe_matches(request: CPESearchRequest):
     try:
         logger.info(f"Searching CPE matches for: {request.device_name}")
         
-        cpe_matches = scanner.processor.find_matching_cpe(request.device_name, threshold=60)
+        cpe_matches = scanner.processor.find_matching_cpe(request.device_name)
         matches = []
         
         for i, cpe in enumerate(cpe_matches[:10]):
@@ -121,8 +123,9 @@ async def scan_device_by_cpe(request: ScanByCPERequest, db: Session = Depends(ge
                 statistics={"cves": 0, "cwes": 0, "capecs": 0, "attacks": 0}
             )
         
-        # Find the created/updated asset
-        assets = asset_crud.get_assets(db, skip=0, limit=1000)
+        # Find the created/updated asset using SQLAlchemy 2.x style
+        stmt = select(Asset).limit(1000)
+        assets = db.scalars(stmt).all()
         asset = None
         for a in assets:
             if a.name == device_name or (device_name in a.name or a.name in device_name):
@@ -161,28 +164,36 @@ async def get_scanned_devices(
     """
     try:
         skip = (page - 1) * per_page
-        query = db.query(Asset)
+        stmt = select(Asset)
         
         # Apply filters
         if department:
-            query = query.filter(asset_crud.Asset.department.ilike(f"%{department}%"))
+            stmt = stmt.where(Asset.department.ilike(f"%{department}%"))
         if risk_level_min is not None:
-            query = query.filter(asset_crud.Asset.risk_level >= risk_level_min)
+            stmt = stmt.where(Asset.risk_level >= risk_level_min)
         if risk_level_max is not None:
-            query = query.filter(asset_crud.Asset.risk_level <= risk_level_max)
+            stmt = stmt.where(Asset.risk_level <= risk_level_max)
         if vendor:
-            query = query.filter(asset_crud.Asset.vendor.ilike(f"%{vendor}%"))
+            stmt = stmt.where(Asset.vendor.ilike(f"%{vendor}%"))
         
         # Apply sorting
         if sort_by == "risk_level":
-            query = query.order_by(asset_crud.Asset.risk_level.desc() if sort_order == "desc" 
-                                 else asset_crud.Asset.risk_level)
+            if sort_order == "desc":
+                stmt = stmt.order_by(desc(Asset.risk_level))
+            else:
+                stmt = stmt.order_by(Asset.risk_level)
         elif sort_by == "name":
-            query = query.order_by(asset_crud.Asset.name.desc() if sort_order == "desc" 
-                                 else asset_crud.Asset.name)
+            if sort_order == "desc":
+                stmt = stmt.order_by(desc(Asset.name))
+            else:
+                stmt = stmt.order_by(Asset.name)
         
-        total = query.count()
-        assets = query.offset(skip).limit(per_page).all()
+        # Get total count
+        count_stmt = select(func.count()).select_from(stmt.subquery())
+        total = db.scalar(count_stmt)
+        
+        # Get paginated results
+        assets = db.scalars(stmt.offset(skip).limit(per_page)).all()
         
         device_infos = [_convert_asset_to_info(asset) for asset in assets]
         
@@ -201,7 +212,7 @@ async def get_device_details(asset_id: int, db: Session = Depends(get_db)):
     API 4: Get detailed information for a specific device
     """
     try:
-        asset = asset_crud.get_asset(db, asset_id)
+        asset = db.get(Asset, asset_id)
         if not asset:
             raise HTTPException(status_code=404, detail="Device not found")
         
@@ -238,7 +249,7 @@ async def delete_device(asset_id: int, db: Session = Depends(get_db)):
     API 5: Delete a device and all its associated data
     """
     try:
-        asset = asset_crud.get_asset(db, asset_id)
+        asset = db.get(Asset, asset_id)
         if not asset:
             raise HTTPException(status_code=404, detail="Device not found")
         
@@ -263,7 +274,7 @@ async def refresh_device_scan(asset_id: int, db: Session = Depends(get_db)):
     API 6: Refresh scan for existing device (re-run vulnerability scan)
     """
     try:
-        asset = asset_crud.get_asset(db, asset_id)
+        asset = db.get(Asset, asset_id)
         if not asset:
             raise HTTPException(status_code=404, detail="Device not found")
         
@@ -294,25 +305,33 @@ async def get_security_statistics(db: Session = Depends(get_db)):
     Get security statistics for dashboard
     """
     try:
-        total_assets = db.query(Asset).count()
-        vulnerable_assets = db.query(Asset).filter(Asset.risk_level > 0).count()
-        total_cves = db.query(CVE).count()
-        total_cwes = db.query(CWE).count()
-        total_capecs = db.query(CAPEC).count()
-        total_attacks = db.query(Attack).count()
+        # Use SQLAlchemy 2.x style queries
+        total_assets = db.scalar(select(func.count(Asset.id)))
+        vulnerable_assets = db.scalar(select(func.count(Asset.id)).where(Asset.risk_level > 0))
+        total_cves = db.scalar(select(func.count(CVE.id)))
+        total_cwes = db.scalar(select(func.count(CWE.id)))
+        total_capecs = db.scalar(select(func.count(CAPEC.id)))
+        total_attacks = db.scalar(select(func.count(Attack.id)))
         
-        avg_risk_result = db.query(func.avg(Asset.risk_level)).scalar()
+        avg_risk_result = db.scalar(select(func.avg(Asset.risk_level)))
         avg_risk_level = float(avg_risk_result) if avg_risk_result else 0.0
         
-        high_risk_assets = db.query(Asset).filter(Asset.risk_level > 50).count()
-        critical_risk_assets = db.query(Asset).filter(Asset.risk_level > 80).count()
+        high_risk_assets = db.scalar(select(func.count(Asset.id)).where(Asset.risk_level > 50))
+        critical_risk_assets = db.scalar(select(func.count(Asset.id)).where(Asset.risk_level > 80))
         
-        # Top vendors by risk
-        top_vendors = db.query(
-            Asset.vendor,
-            func.avg(Asset.risk_level).label('avg_risk'),
-            func.count(Asset.id).label('count')
-        ).group_by(Asset.vendor).having(func.count(Asset.id) > 0).order_by(desc('avg_risk')).limit(5).all()
+        # Top vendors by risk using SQLAlchemy 2.x style
+        top_vendors_stmt = (
+            select(
+                Asset.vendor,
+                func.avg(Asset.risk_level).label('avg_risk'),
+                func.count(Asset.id).label('count')
+            )
+            .group_by(Asset.vendor)
+            .having(func.count(Asset.id) > 0)
+            .order_by(desc('avg_risk'))
+            .limit(5)
+        )
+        top_vendors = db.execute(top_vendors_stmt).all()
         
         top_vendors_by_risk = [
             {"vendor": vendor or "Unknown", "average_risk": float(avg_risk), "device_count": count}
@@ -320,12 +339,18 @@ async def get_security_statistics(db: Session = Depends(get_db)):
         ]
         
         return SecurityStatsResponse(
-            total_assets=total_assets, vulnerable_assets=vulnerable_assets,
-            total_cves=total_cves, total_cwes=total_cwes, total_capecs=total_capecs,
-            total_attacks=total_attacks, average_risk_level=avg_risk_level,
-            high_risk_assets=high_risk_assets, critical_risk_assets=critical_risk_assets,
-            vulnerability_coverage=(vulnerable_assets / total_assets * 100) if total_assets > 0 else 0,
-            top_vendors_by_risk=top_vendors_by_risk, recent_scans=vulnerable_assets
+            total_assets=total_assets or 0, 
+            vulnerable_assets=vulnerable_assets or 0,
+            total_cves=total_cves or 0, 
+            total_cwes=total_cwes or 0, 
+            total_capecs=total_capecs or 0,
+            total_attacks=total_attacks or 0, 
+            average_risk_level=avg_risk_level,
+            high_risk_assets=high_risk_assets or 0, 
+            critical_risk_assets=critical_risk_assets or 0,
+            vulnerability_coverage=((vulnerable_assets or 0) / (total_assets or 1) * 100),
+            top_vendors_by_risk=top_vendors_by_risk, 
+            recent_scans=vulnerable_assets or 0
         )
         
     except Exception as e:
